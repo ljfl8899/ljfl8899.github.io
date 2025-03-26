@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+     <html>
+     <head>
+         <title>垃圾分类识别</title>
+         <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+     </head>
+     <body>
+         <h1>上传垃圾图片</h1>
+         <input type="file" id="upload" accept="image/*">
+         < img id="preview" width="300">
+         <p id="result"></p >
+
+         <script>
+             let model;
+             async function init() {
+                 model = await tf.loadLayersModel('model/model.json');
+                 console.log("模型加载完成！");
+             }
+             document.getElementById('upload').onchange = async (e) => {
+                 const img = document.getElementById('preview');
+                 img.src = URL.createObjectURL(e.target.files[0]);
+                 const tensor = tf.browser.fromPixels(img)
+                     .resizeNearestNeighbor([224, 224])
+                     .toFloat();
+                 const prediction = await model.predict(tensor.expandDims()).data();
+                 const classes = ['塑料', '纸张', '电池']; // 替换为你的标签
+                 const maxIndex = prediction.indexOf(Math.max(...prediction));
+                 document.getElementById('result').innerText = `分类结果：${classes[maxIndex]}`;
+             };
+             init();
+         </script>
+     </body>
+     </html>
